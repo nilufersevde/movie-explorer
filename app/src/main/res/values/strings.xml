@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="user_email_example">user@example.com</string>
+    <string name="logout">Logout</string>
+    <string name="my_favorite_movies">My Favorite Movies</string>
+    <string name="no_favorites_yet">No favorite movies yet</string>
+</resources>
