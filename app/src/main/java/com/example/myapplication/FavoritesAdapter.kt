@@ -47,6 +47,7 @@ class FavoritesAdapter(
             } else {
                 posterImageView.setImageResource(R.drawable.ic_movie_placeholder)
             }
+            android.util.Log.d("FavoritesAdapter", "Remove button clicked for: ${favoriteMovie.title}")
 
             // Remove favorite button
             removeButton.setOnClickListener {

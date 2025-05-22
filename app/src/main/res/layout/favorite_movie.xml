@@ -28,13 +28,15 @@
 
             <ImageButton
                 android:id="@+id/removeButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="4dp"
-                android:background="@drawable/circular_button_background"
+                android:layout_margin="8dp"
+                android:background="@android:color/holo_red_dark"
                 android:contentDescription="Remove from favorites"
-                android:src="@drawable/ic_remove" />
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="@android:color/white" />
+
         </FrameLayout>
 
         <LinearLayout

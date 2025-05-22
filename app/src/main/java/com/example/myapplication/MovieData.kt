@@ -16,5 +16,6 @@ data class Movie(
     val originalTitle: String? = null,
     val tagline: String? = null,
     // Not stored in database, used for UI
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    var isWatched: Boolean = false
 )

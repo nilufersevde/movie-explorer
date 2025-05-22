@@ -12,7 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
 class MovieAdapter(
-    private val onFavoriteClick: (Movie) -> Unit
+    private val onFavoriteClick: (Movie) -> Unit,
+    private val onWatchedClick: (Movie) -> Unit
 ) : PagingDataAdapter<Movie, MovieAdapter.MovieViewHolder>(MovieDiffCallback()) {
 
     private var movieList: List<Movie> = emptyList()
@@ -45,6 +46,8 @@ class MovieAdapter(
         private val ratingTextView: TextView = itemView.findViewById(R.id.ratingTextView)
         private val posterImageView: ImageView = itemView.findViewById(R.id.posterImageView)
         private val favoriteButton: ImageButton = itemView.findViewById(R.id.favoriteButton)
+        private val watchedButton: ImageButton = itemView.findViewById(R.id.watchedButton)
+
 
         fun bind(movie: Movie) {
             titleTextView.text = movie.title
@@ -65,15 +68,28 @@ class MovieAdapter(
 
             // Set favorite icon based on status
             val favoriteIcon = if (movie.isFavorite) {
-                R.drawable.ic_favorite_filled
+                R.drawable.favorite_24dp_1f1f1f
             } else {
-                R.drawable.ic_favorite_border
+                R.drawable.baseline_favorite_border_24
+
             }
             favoriteButton.setImageResource(favoriteIcon)
 
             // Set click listener for favorite button
             favoriteButton.setOnClickListener {
                 onFavoriteClick(movie)
+            }
+            // Set watched icon based on status
+            val watchedIcon = if (movie.isWatched) {
+                R.drawable.favorite_24dp_1f1f1f
+            } else {
+                R.drawable.favorite_24dp_1f1f1f
+            }
+            watchedButton.setImageResource(watchedIcon)
+
+// Set click listener for watched button
+            watchedButton.setOnClickListener {
+                onWatchedClick(movie)
             }
         }
     }

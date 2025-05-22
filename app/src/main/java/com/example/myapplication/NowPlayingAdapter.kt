@@ -10,7 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
 class NowPlayingAdapter(
-    private val onFavoriteClick: (Movie) -> Unit
+    private val onFavoriteClick: (Movie) -> Unit,
+    private val onWatchedClick: (Movie) -> Unit // NEW
 ) : RecyclerView.Adapter<NowPlayingAdapter.MovieViewHolder>() {
 
     private var movies: List<Movie> = emptyList()
@@ -39,6 +40,7 @@ class NowPlayingAdapter(
         private val ratingTextView: TextView = itemView.findViewById(R.id.ratingTextView)
         private val posterImageView: ImageView = itemView.findViewById(R.id.posterImageView)
         private val favoriteButton: ImageButton = itemView.findViewById(R.id.favoriteButton)
+        private val watchedButton: ImageButton = itemView.findViewById(R.id.watchedButton)
 
         fun bind(movie: Movie) {
             titleTextView.text = movie.title
@@ -65,6 +67,16 @@ class NowPlayingAdapter(
 
             favoriteButton.setOnClickListener {
                 onFavoriteClick(movie)
+            }
+            val watchedIcon = if (movie.isWatched) {
+                R.drawable.favorite_24dp_1f1f1f
+            } else {
+                R.drawable.favorite_24dp_1f1f1f
+            }
+            watchedButton.setImageResource(watchedIcon)
+
+            watchedButton.setOnClickListener {
+                onWatchedClick(movie)
             }
         }
     }

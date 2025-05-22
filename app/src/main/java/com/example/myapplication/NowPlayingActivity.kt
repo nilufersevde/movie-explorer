@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -20,6 +21,7 @@ import retrofit2.Response
 class NowPlayingActivity : AppCompatActivity() {
     private lateinit var adapter: NowPlayingAdapter
     private lateinit var auth: FirebaseAuth
+    private lateinit var firestore: FirebaseFirestore
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: View
     private lateinit var errorView: View
@@ -37,6 +39,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // Initialize Firebase
         auth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
 
         // Check if user is logged in
         if (auth.currentUser == null) {
@@ -51,9 +54,8 @@ class NowPlayingActivity : AppCompatActivity() {
         errorView = findViewById(R.id.errorView)
 
         adapter = NowPlayingAdapter(
-            onFavoriteClick = { movie ->
-                // Temporarily disabled
-            }
+            onFavoriteClick = { movie -> toggleFavorite(movie) },
+            onWatchedClick = { movie -> toggleWatched(movie) }
         )
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -68,7 +70,6 @@ class NowPlayingActivity : AppCompatActivity() {
         recyclerView.visibility = View.GONE
         errorView.visibility = View.GONE
 
-        // Check network availability
         if (!isNetworkAvailable(this)) {
             Log.e("NowPlayingActivity", "No internet connection")
             showError("No internet connection")
@@ -84,24 +85,16 @@ class NowPlayingActivity : AppCompatActivity() {
 
                 if (response.isSuccessful && response.body() != null) {
                     val tmdbMovies = response.body()!!.results
-                    Log.d("NowPlayingActivity", "Fetched ${tmdbMovies.size} movies: $tmdbMovies")
                     val movies = tmdbMovies.map { mapTMDbMovieToLocal(it) }
-                    if (movies.isEmpty()) {
-                        Log.d("NowPlayingActivity", "Empty movie list after mapping")
-                        showError("No movies available")
-                    } else {
-                        adapter.submitList(movies)
-                        recyclerView.visibility = View.VISIBLE
-                    }
+                    adapter.submitList(movies)
+                    recyclerView.visibility = View.VISIBLE
                 } else {
-                    Log.e("NowPlayingActivity", "API error: ${response.code()} - ${response.message()}")
                     showError("Failed to load movies: ${response.message()}")
                 }
             }
 
             override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
                 progressBar.visibility = View.GONE
-                Log.e("NowPlayingActivity", "Network error: ${t.message}", t)
                 showError("Network error: ${t.message}")
             }
         })
@@ -119,9 +112,102 @@ class NowPlayingActivity : AppCompatActivity() {
             posterPath = tmdbMovie.posterPath,
             originalTitle = tmdbMovie.originalTitle,
             tagline = tmdbMovie.tagline,
-            isFavorite = false
+            isFavorite = false,
+            isWatched = false
         )
     }
+
+    private fun toggleWatched(movie: Movie) {
+        val currentUser = auth.currentUser ?: return
+
+        if (movie.isWatched) {
+            firestore.collection("watched")
+                .whereEqualTo("userId", currentUser.uid)
+                .whereEqualTo("movieId", movie.id)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (doc in documents) {
+                        firestore.collection("watched").document(doc.id).delete()
+                    }
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "${movie.title} removed from watched list",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("NowPlayingActivity", "Error removing watched", e)
+                }
+        } else {
+            val watchedMovie = hashMapOf(
+                "userId" to currentUser.uid,
+                "movieId" to movie.id,
+                "title" to movie.title,
+                "posterPath" to movie.posterPath,
+                "rating" to movie.voteAverage,
+                "releaseDate" to movie.releaseDate
+            )
+
+            firestore.collection("watched")
+                .add(watchedMovie)
+                .addOnSuccessListener {
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "${movie.title} marked as watched",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("NowPlayingActivity", "Error adding watched", e)
+                }
+        }
+    }
+    private fun toggleFavorite(movie: Movie) {
+        val currentUser = auth.currentUser ?: return
+
+        if (movie.isFavorite) {
+            firestore.collection("favorites")
+                .whereEqualTo("userId", currentUser.uid)
+                .whereEqualTo("movieId", movie.id)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (doc in documents) {
+                        firestore.collection("favorites").document(doc.id).delete()
+                    }
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "${movie.title} removed from favorites",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("NowPlayingActivity", "Error removing favorite", e)
+                }
+        } else {
+            val favoriteMovie = hashMapOf(
+                "userId" to currentUser.uid,
+                "movieId" to movie.id,
+                "title" to movie.title,
+                "posterPath" to movie.posterPath,
+                "rating" to movie.voteAverage,
+                "releaseDate" to movie.releaseDate
+            )
+
+            firestore.collection("favorites")
+                .add(favoriteMovie)
+                .addOnSuccessListener {
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "${movie.title} added to favorites",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("NowPlayingActivity", "Error adding favorite", e)
+                }
+        }
+    }
+
 
     private fun showError(message: String) {
         recyclerView.visibility = View.GONE

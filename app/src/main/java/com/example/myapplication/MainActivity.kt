@@ -64,9 +64,14 @@ class MainActivity : AppCompatActivity() {
         val nowPlayingButton = findViewById<Button>(R.id.nowPlayingButton)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
 
+
+
         adapter = MovieAdapter(
             onFavoriteClick = { movie ->
                 toggleFavorite(movie)
+            },
+                    onWatchedClick = { movie ->
+                toggleWatched(movie)
             }
         )
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -148,6 +153,36 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    private fun checkWatchedStatus(movies: List<Movie>) {
+        val currentUser = auth.currentUser ?: return
+
+        firestore.collection("watched")
+            .whereEqualTo("userId", currentUser.uid)
+            .get()
+            .addOnSuccessListener { documents ->
+                val watchedIds = documents.documents.mapNotNull { doc ->
+                    doc.getLong("movieId")?.toInt()
+                }.toSet()
+
+                val moviesWithWatchedStatus = movies.map { movie ->
+                    movie.copy(isWatched = watchedIds.contains(movie.id))
+                }
+
+                // Optional: update adapter if you're using non-paging
+                // adapter.submitList(moviesWithWatchedStatus)
+
+            }
+            .addOnFailureListener { e ->
+                Log.e("MainActivity", "Error checking watched status", e)
+                lifecycleScope.launch {
+                    viewModel.moviePagingFlow.collectLatest { pagingData ->
+                        adapter.submitData(pagingData)
+                    }
+                }
+            }
+    }
+
+
     private fun toggleFavorite(movie: Movie) {
         val currentUser = auth.currentUser ?: return
 
@@ -205,6 +240,64 @@ class MainActivity : AppCompatActivity() {
                 }
         }
     }
+
+    private fun toggleWatched(movie: Movie) {
+        val currentUser = auth.currentUser ?: return
+
+        if (movie.isWatched) {
+            // Remove from watched list
+            firestore.collection("watched")
+                .whereEqualTo("userId", currentUser.uid)
+                .whereEqualTo("movieId", movie.id)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        firestore.collection("watched").document(document.id).delete()
+                    }
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "${movie.title} removed from watched list",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    lifecycleScope.launch {
+                        val updatedMovies = movieDao.getAllMovies()
+                        checkWatchedStatus(updatedMovies)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("MainActivity", "Error removing watched", e)
+                }
+        } else {
+            // Add to watched list
+            val watchedMovie = hashMapOf(
+                "userId" to currentUser.uid,
+                "movieId" to movie.id,
+                "title" to movie.title,
+                "posterPath" to movie.posterPath,
+                "rating" to movie.voteAverage,
+                "releaseDate" to movie.releaseDate,
+                "timestamp" to System.currentTimeMillis()
+            )
+
+            firestore.collection("watched")
+                .add(watchedMovie)
+                .addOnSuccessListener {
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "${movie.title} marked as watched",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    lifecycleScope.launch {
+                        val updatedMovies = movieDao.getAllMovies()
+                        checkWatchedStatus(updatedMovies)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("MainActivity", "Error adding watched", e)
+                }
+        }
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)

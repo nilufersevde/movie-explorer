@@ -35,6 +35,10 @@
             android:exported="false" />
         <activity android:name=".NowPlayingActivity"
             />
+
+        <activity android:name=".FavoriteMoviesActivity" />
+        <activity android:name=".WatchedMoviesActivity" />
+
     </application>
 
 </manifest>

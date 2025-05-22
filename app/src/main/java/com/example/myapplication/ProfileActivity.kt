@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myapplication.databinding.ActivityProfileBinding
@@ -18,7 +19,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProfileBinding
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
-    private lateinit var favoritesAdapter: FavoritesAdapter
+    //private lateinit var favoritesAdapter: FavoritesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,10 +37,10 @@ class ProfileActivity : AppCompatActivity() {
         setupUserInfo()
 
         // Setup favorites RecyclerView
-        setupFavoritesRecyclerView()
+        //setupFavoritesRecyclerView()
 
         // Load user's favorite movies
-        loadFavoriteMovies()
+       // loadFavoriteMovies()
 
         // Logout button
         binding.logoutButton.setOnClickListener {
@@ -47,6 +48,14 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
+        findViewById<Button>(R.id.favoritesButton).setOnClickListener {
+            startActivity(Intent(this, FavoriteMoviesActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.watchedButton).setOnClickListener {
+            startActivity(Intent(this, WatchedMoviesActivity::class.java))
+        }
+
     }
 
     private fun setupUserInfo() {
@@ -57,51 +66,51 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupFavoritesRecyclerView() {
-        favoritesAdapter = FavoritesAdapter(
-            onRemoveFavorite = { favoriteMovie ->
-                removeFavoriteMovie(favoriteMovie)
-            }
-        )
-        binding.favoritesRecyclerView.apply {
-            layoutManager = GridLayoutManager(this@ProfileActivity, 2)
-            adapter = favoritesAdapter
-        }
-    }
+//    //private fun setupFavoritesRecyclerView() {
+//        favoritesAdapter = FavoritesAdapter(
+//            onRemoveFavorite = { favoriteMovie ->
+//                removeFavoriteMovie(favoriteMovie)
+//            }
+//        )
+//        binding.favoritesRecyclerView.apply {
+//            layoutManager = GridLayoutManager(this@ProfileActivity, 2)
+//            adapter = favoritesAdapter
+//        }
+//    }
 
-    private fun loadFavoriteMovies() {
-        val currentUser = auth.currentUser ?: return
+//    private fun loadFavoriteMovies() {
+//        val currentUser = auth.currentUser ?: return
+//
+//        firestore.collection("favorites")
+//            .whereEqualTo("userId", currentUser.uid)
+//            .orderBy("timestamp", Query.Direction.DESCENDING)
+//            .get()
+//            .addOnSuccessListener { documents ->
+//                val favoriteMovies = documents.map { it.toObject(FavoriteMovie::class.java) }
+//
+//                if (favoriteMovies.isEmpty()) {
+//                    binding.emptyFavoritesTextView.visibility = View.VISIBLE
+//                } else {
+//                    binding.emptyFavoritesTextView.visibility = View.GONE
+//                    favoritesAdapter.submitList(favoriteMovies)
+//                }
+//            }
+//            .addOnFailureListener { e ->
+//                Log.e(TAG, "Error loading favorites", e)
+//            }
+//    }
 
-        firestore.collection("favorites")
-            .whereEqualTo("userId", currentUser.uid)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .get()
-            .addOnSuccessListener { documents ->
-                val favoriteMovies = documents.map { it.toObject(FavoriteMovie::class.java) }
-
-                if (favoriteMovies.isEmpty()) {
-                    binding.emptyFavoritesTextView.visibility = View.VISIBLE
-                } else {
-                    binding.emptyFavoritesTextView.visibility = View.GONE
-                    favoritesAdapter.submitList(favoriteMovies)
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error loading favorites", e)
-            }
-    }
-
-    private fun removeFavoriteMovie(favoriteMovie: FavoriteMovie) {
-        firestore.collection("favorites").document(favoriteMovie.documentId)
-            .delete()
-            .addOnSuccessListener {
-                // Refresh the favorites list
-                loadFavoriteMovies()
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error removing favorite", e)
-            }
-    }
+//    private fun removeFavoriteMovie(favoriteMovie: FavoriteMovie) {
+//        firestore.collection("favorites").document(favoriteMovie.documentId)
+//            .delete()
+//            .addOnSuccessListener {
+//                // Refresh the favorites list
+//                loadFavoriteMovies()
+//            }
+//            .addOnFailureListener { e ->
+//                Log.e(TAG, "Error removing favorite", e)
+//            }
+//    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {

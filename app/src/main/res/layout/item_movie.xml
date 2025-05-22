@@ -2,6 +2,7 @@
 <!-- res/layout/item_movie.xml -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
@@ -79,13 +80,27 @@
             android:id="@+id/favoriteButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_marginTop="192dp"
+            android:layout_marginEnd="16dp"
             android:contentDescription="Add to favorites"
-            android:src="@drawable/ic_favorite_border"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/favorite_24dp_1f1f1f"
+            app:tint="?attr/colorOnSurface"
+
+            />
+
+        <ImageButton
+            android:id="@+id/watchedButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="80dp"
+            android:contentDescription="Mark as watched"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/baseline_favorite_border_24"
+            app:tint="?attr/colorOnSurface"
+            tools:layout_editor_absoluteY="192dp" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>
