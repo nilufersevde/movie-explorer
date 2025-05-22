@@ -81,9 +81,9 @@ class MovieAdapter(
             }
             // Set watched icon based on status
             val watchedIcon = if (movie.isWatched) {
-                R.drawable.favorite_24dp_1f1f1f
+                R.drawable.visibility_24
             } else {
-                R.drawable.favorite_24dp_1f1f1f
+                R.drawable.visibility_24
             }
             watchedButton.setImageResource(watchedIcon)
 
